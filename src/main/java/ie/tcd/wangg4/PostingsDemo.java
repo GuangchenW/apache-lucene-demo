@@ -2,10 +2,7 @@ package ie.tcd.wangg4;
 
 import java.io.IOException;
 
-import java.util.Scanner;
-
-import java.nio.file.Paths;
-import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -15,7 +12,6 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.document.Document;
 
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
 
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
@@ -24,7 +20,6 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
 
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -37,46 +32,42 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.DocIdSetIterator;
 
-public class QueryIndex3
-{
-    
-    // Directory where the search index will be saved
-    private static String INDEX_DIRECTORY = "../index";
+public class PostingsDemo {
 
     private Analyzer analyzer;
     private Directory directory;
 
-    public QueryIndex3() throws IOException
-    {
-        // Need to use the same analyzer and index directory throughout, so
-        // initialize them here
-        this.analyzer = new StandardAnalyzer();
-        this.directory = FSDirectory.open(Paths.get(INDEX_DIRECTORY));
+    public PostingsDemo() throws IOException {
+        analyzer = new StandardAnalyzer();
+        directory = Common.openIndexDirectory();
     }
 
-    public void buildIndex(String[] args) throws IOException
-    {
-
+    /**
+     * Build a new index with term vectors. Overrides the existing index.
+     * @param args list of files or directories
+     * @throws IOException
+     */
+    public void buildIndex(String[] args) throws IOException {
         // Create a new field type which will store term vector information
         FieldType ft = new FieldType(TextField.TYPE_STORED);
-        ft.setTokenized(true); //done as default
+        ft.setTokenized(true); // True by default
         ft.setStoreTermVectors(true);
+        // The following fields are unused in the demo
+        // You are free to play around with them
         ft.setStoreTermVectorPositions(true);
         ft.setStoreTermVectorOffsets(true);
         ft.setStoreTermVectorPayloads(true);
 
-        // create and configure an index writer
-        IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
-        IndexWriter iwriter = new IndexWriter(directory, config);  
+        // Create and configure an index writer
+        IndexWriter iwriter = Common.createIndexWriter(directory, analyzer);
 
         // Add all input documents to the index
-        for (String arg : args)
-        {
-            System.out.printf("Indexing \"%s\"\n", arg);
-            String content = new String(Files.readAllBytes(Paths.get(arg)));
+        for (Path file : Common.collectFiles(args)) {
+            System.out.printf("Indexing \"%s\"\n", file);
             Document doc = new Document();
-            doc.add(new StringField("filename", arg, Field.Store.YES));
+            String content = Common.readFile(file);
+            doc.add(new StringField("filename", file.toString(), Field.Store.YES));
+            // Note this uses our custom file type, different from IndexCorpus.java
             doc.add(new Field("content", content, ft));
             iwriter.addDocument(doc);
         }
@@ -85,8 +76,7 @@ public class QueryIndex3
         iwriter.close();
     }
 
-    public void postingsDemo() throws IOException
-    {
+    public void postingsDemo() throws IOException {
         DirectoryReader ireader = DirectoryReader.open(directory);
     
         // Use IndexSearcher to retrieve some arbitrary document from the index        
@@ -94,42 +84,39 @@ public class QueryIndex3
         Query queryTerm = new TermQuery(new Term("content","raven"));
         ScoreDoc[] hits = isearcher.search(queryTerm, 1).scoreDocs;
         
-        // Make sure we actually found something
-        if (hits.length <= 0)
-        {
+        // Print to stdout and return if no hits
+        if (hits.length <= 0) {
             System.out.println("Failed to retrieve a document");
+            ireader.close();
             return;
         }
 
-        // get the document ID of the first search result
+        // Get the fields of the first hit document
         int docID = hits[0].doc;
-
-        // Get the fields associated with the document (filename and content)
         Fields fields = ireader.termVectors().get(docID);
+        if (fields == null) {
+            System.out.println("Document has no term vectors. Are you using the correct index?");
+            ireader.close();
+            return;
+        }
 
-        for (String field : fields)
-        {
+        for (String field : fields) {
             // For each field, get the terms it contains i.e. unique words
             Terms terms = fields.terms(field);
 
             // Iterate over each term in the field
             BytesRef termByte = null;
             TermsEnum termsEnum = terms.iterator();
-
-            while ((termByte = termsEnum.next()) != null)
-            {                                
-                int id;
-
-                // for each term retrieve its postings list
-                PostingsEnum posting = null;
-                posting = termsEnum.postings(posting, PostingsEnum.FREQS);
-
+            while ((termByte = termsEnum.next()) != null) {
+                // Retrieve the posting for this term
+                // Supplied with FREQS flag for term frequency
+                PostingsEnum posting = termsEnum.postings(null, PostingsEnum.FREQS);
+                
                 // This only processes the single document we retrieved earlier
-                while ((id = posting.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS)
-                {
-                    // convert the term from a byte array to a string
+                while (posting.nextDoc() != DocIdSetIterator.NO_MORE_DOCS) {
+                    // convert the term from byte array to a string
                     String termString = termByte.utf8ToString();
-                    
+
                     // extract some stats from the index
                     Term term = new Term(field, termString);
                     long freq = posting.freq();
@@ -145,25 +132,21 @@ public class QueryIndex3
             }
         }
 
-        // close everything when we're done
+        // Close everything when we're done
         ireader.close();
     }
 
-    public void shutdown() throws IOException
-    {
+    public void shutdown() throws IOException {
         directory.close();
     }
 
-    public static void main(String[] args) throws IOException
-    {
-        
-        if (args.length <= 0)
-        {
+    public static void main(String[] args) throws IOException {
+        if (args.length <= 0) {
             System.out.println("Expected corpus as input");
             System.exit(1);            
         }
 
-        QueryIndex3 qi = new QueryIndex3();
+        PostingsDemo qi = new PostingsDemo();
         qi.buildIndex(args);
         qi.postingsDemo();
         qi.shutdown();
