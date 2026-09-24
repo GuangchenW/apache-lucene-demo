@@ -1,0 +1,9 @@
+{
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-21",
+            "path": "C:/Users/Guangchen Wang/scoop/apps/temurin21-jdk/current",
+            "default": true
+        }
+    ]
+}
