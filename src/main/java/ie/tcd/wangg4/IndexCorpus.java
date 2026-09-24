@@ -29,14 +29,12 @@ public class IndexCorpus {
 
 		for (Path file : Common.collectFiles(args)) {
 			System.out.printf("Indexing \"%s\"\n", file);
-
 			// Create a new document and add the file's contents
 			Document doc = new Document();
 			// Parse file content
 			String content = Common.readFile(file);
 			doc.add(new StringField("filename", file.toString(), Field.Store.YES));
 			doc.add(new TextField("content", content, Field.Store.YES));
-
 			// Add the file to list
 			documents.add(doc);
 		}
