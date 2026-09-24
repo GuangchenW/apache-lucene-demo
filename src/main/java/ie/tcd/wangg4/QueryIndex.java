@@ -62,7 +62,7 @@ public class QueryIndex
 		System.out.println("Documents: " + hits.length);
 		for (int i = 0; i < hits.length; i++)
 		{
-			Document hitDoc = isearcher.doc(hits[i].doc);
+			Document hitDoc = isearcher.storedFields().document(hits[i].doc);
 			System.out.println(i + ") " + hitDoc.get("filename") + " " + hits[i].score);
 		}
 
