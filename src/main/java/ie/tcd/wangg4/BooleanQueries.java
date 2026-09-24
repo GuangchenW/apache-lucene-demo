@@ -14,7 +14,7 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanClause;
 
-public class QueryIndex {
+public class BooleanQueries {
 	public static void main(String[] args) throws IOException {
 		// Open the folder that contains our search index
 		Directory directory = Common.openIndexDirectory();
@@ -32,8 +32,8 @@ public class QueryIndex {
 		Query term3 = new TermQuery(new Term("content", "criticism"));
 
 		// Construct our query using basic boolean operations
-		query.add(term1, BooleanClause.Occur.MUST);   // AND
-		query.add(term2, BooleanClause.Occur.SHOULD);     // OR
+		query.add(term1, BooleanClause.Occur.MUST);   	// AND
+		query.add(term2, BooleanClause.Occur.SHOULD);  	// OR
 		query.add(term3, BooleanClause.Occur.MUST_NOT); // NOT
 
 		// Get the set of results from the searcher
