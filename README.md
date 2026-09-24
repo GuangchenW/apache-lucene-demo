@@ -13,6 +13,10 @@ These are the example programs from the CS7IS3 (TCD) Lucene tutorial and a good 
 - Java 21 or newer
 - Maven
 
+You can install these on Linux VM with:
+
+``sudo apt install openjdk-21-jdk-headless maven``
+
 ## Build
 ```
 mvn package
