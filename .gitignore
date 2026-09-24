@@ -31,3 +31,9 @@ replay_pid*
 
 # Maven build artifacts #
 target/
+
+# Lucene index #
+index/
+
+# OS files #
+*.DS_Store
