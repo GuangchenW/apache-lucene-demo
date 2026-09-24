@@ -37,8 +37,6 @@ public class QueryIndex {
 
         String queryString = "";
         Scanner scanner = new Scanner(System.in);
-        // Print the exit string cue
-        System.out.println("Exit with '\\q'");
         do {
             // Trim leading and trailing whitespace from the query
             queryString = queryString.trim();
@@ -58,6 +56,7 @@ public class QueryIndex {
             }
             
             // prompt the user for input and quit the loop if they escape
+            System.out.println("[Enter query below | Type \\q to quit]");
             System.out.print(">>> ");
             if (scanner.hasNextLine()) { queryString = scanner.nextLine(); }
         } while (!queryString.equals("\\q"));
