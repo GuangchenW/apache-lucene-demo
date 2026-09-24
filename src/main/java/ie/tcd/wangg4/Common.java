@@ -102,7 +102,7 @@ public class Common {
         System.out.println("Documents: " + hits.length);
         for (int i = 0; i < hits.length; i++) {
             Document hitDoc = storedFields.document(hits[i].doc);
-            System.out.println(i + ") " + hitDoc.get("filename") + " " + hits[i].score);
+            System.out.println((i+1) + ") " + hitDoc.get("filename") + " " + hits[i].score);
         }
     }
 }
