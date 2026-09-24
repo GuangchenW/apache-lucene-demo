@@ -5,7 +5,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.analysis.Analyzer;
@@ -58,9 +60,31 @@ public class Common {
         return createIndexWriter(directory, analyzer, IndexWriterConfig.OpenMode.CREATE);
     }
 
-    // TODO
+    /**
+     * Turns command-line arguments into a list of files to index.
+     * <p>
+     * A file is added as-is. A folder adds every regular file inside it,
+     * including files in sub-folders, sorted by path.
+     * @param args file and/or folder paths
+     * @return list of files to index
+     * @throws IOException if a folder cannot be read
+     */
     public static List<Path> collectFiles(String[] args) throws IOException {
-        return null;
+        List<Path> fileList = new ArrayList<Path>();
+        for (String arg : args) {
+            Path p = Paths.get(arg);
+            if (Files.isRegularFile(p)) {
+                fileList.add(p);
+            } else if (Files.isDirectory(p)) {
+                // Files.walk() visits the folder and all its sub-folders.
+                try (Stream<Path> files = Files.walk(p)) {
+                    files.filter(Files::isRegularFile).sorted().forEach(fileList::add);
+                }
+            } else {
+                System.out.printf("Skipping \"%s\": not a file or folder\n", arg);
+            }
+        }
+        return fileList;
     }
 
     public static String readFile(Path path) throws IOException {
