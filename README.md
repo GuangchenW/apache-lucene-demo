@@ -2,7 +2,9 @@
 
 ## About
 Original scripts by Dr. Gary Munnelly.
+
 Adapted for 2020 by Colin Daly.
+
 Adapted for 2026 (Lucene 10.5) by Guangchen Wang.
 
 These are the example programs from the CS7IS3 (TCD) Lucene tutorial and a good starting point for Assignment 1.
