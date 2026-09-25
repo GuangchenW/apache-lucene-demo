@@ -35,14 +35,14 @@ Run the jar with no arguments to see the usage message.
 | 1 | `create-index` | `CreateIndex.java` | Indexing a test document |
 | 2 | `index-corpus <files\|folders>` | `IndexCorpus.java` | Indexing corpus |
 | 3 | `boolean-query` | `BooleanQueries.java` | Evaluating a hard-coded `BooleanQuery` |
-| 4 | `query-index` | `QueryIndex.java` | Interactive search |
+| 4 | `interactive-query` | `QueryIndex.java` | Interactive search |
 | 5 | `postings-demo <files\|folders>` | `PostingsDemo.java` | Corpus statistics (tfidf) |
 
 Example usages:
 ```
 java -jar target/ir-demo.jar index-corpus data/example/corpus
 java -jar target/ir-demo.jar boolean-query
-java -jar target/ir-demo.jar query-index
+java -jar target/ir-demo.jar interactive-query
 java -jar target/ir-demo.jar postings-demo data/example/corpus
 ```
 
