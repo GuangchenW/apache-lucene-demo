@@ -42,7 +42,7 @@ public class IndexCorpus {
         // Create the IndexWriter
         Directory directory = Common.openIndexDirectory();
         IndexWriter iwriter = Common.createIndexWriter(directory, analyzer);
-        // Write all the documents in the linked list to the search index
+        // Write all the documents in the list to the search index
         iwriter.addDocuments(documents);
 
         // Commit everything and close
