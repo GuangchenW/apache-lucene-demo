@@ -37,3 +37,7 @@ index/
 
 # OS files #
 *.DS_Store
+
+# Data #
+data/*
+!data/example
